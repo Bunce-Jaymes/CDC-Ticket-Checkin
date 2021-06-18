@@ -3,6 +3,7 @@ import eventObject from './event.js';
 import seatObject from './seat.js';
 import localStorageUtil from "./localStorageUtil.js";
 import selectUnavailableSeatViewObject from "./selectUnavailableSeatView.js";
+import seatCheckInViewViewObject from "./seatCheckInView.js";
 
 export default class createEvntController {
     constructor(mainDisplayElement) {
@@ -11,12 +12,12 @@ export default class createEvntController {
         this.selectUnavailableSeatViewInstance = new selectUnavailableSeatViewObject();
         this.event = new eventObject();
         this.ls = new localStorageUtil();
+        this.seatCheckInView = new seatCheckInViewViewObject();
         this.alphabetArray = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "AB", "BB", "CB", "DB", "EB", "FB", "GB", "HB", "IB", "JB", "KB", "LB", "MB", "NB", "OB", "PB", "QB", "RB", "SB", "TB", "UB", "VB", "WB", "XB", "YB", "ZB"]
     }
 
     init(){
         this.mainDisplayElement = document.querySelector(this.mainDisplayElement);
-        const eventListDiv = document.querySelector('#eventListDiv');
         const eventListStatus = document.getElementById("status");
 
         const addEventButton = document.querySelector('#addEventButton');
@@ -36,6 +37,10 @@ export default class createEvntController {
             savedEventsArray.forEach(element => {
                 let newLiItem = document.createElement("li");
                 let newEventButton = document.createElement("button");
+
+                newEventButton.addEventListener("click", e => {
+                   this.showSeatCheckIn();
+                });
 
                 let eventDate = new Date(element.eventDate);
                 let eventTime = new Date(element.eventDate);
@@ -68,6 +73,10 @@ export default class createEvntController {
 
         const newEventForm = document.querySelector('#newEventForm');
         newEventForm.addEventListener('submit', eventListener);
+        const cancelButton = document.querySelector('#cancelFormButton');
+        cancelButton.addEventListener('click', e => {
+            this.backToMain();
+        });
     }
 
     processEventForm() {
@@ -118,7 +127,6 @@ export default class createEvntController {
                 this.event.columnsAreNumbers = eventInfoArray[5];
                 this.event.rowsAreLetters = eventInfoArray[6];
 
-                this.saveNewEvent();
                 return true;
             } else {
                 submitForm = false;
@@ -141,6 +149,13 @@ export default class createEvntController {
         return eventInfoArray;
     }
 
+    backToMain() {
+        let response = confirm("The following event/seating chart has not been saved if cancelled. Please select yes to continue.");
+        if (response == true){
+            location.reload();
+        }
+    }
+
     saveNewEvent() {
         let savedEventsArray = this.ls.getLocalStorage();
 
@@ -153,7 +168,18 @@ export default class createEvntController {
 
     selectUnavailableSeats() {
         this.selectUnavailableSeatViewInstance.showUnavailableSeatView(this.mainDisplayElement);
+        const doneButton = document.querySelector('#doneButton');
         const seatTable = document.querySelector('#seatTable');
+
+        doneButton.addEventListener('click', e => {
+           this.removeSeatsAndSave(seatTable);
+        });
+
+        const cancelButton = document.querySelector('#cancelButton');
+
+        cancelButton.addEventListener('click', e => {
+            this.backToMain();
+        });
 
         const seatArrayFromEvent = this.event.seats;
         const columnLabelRow = document.createElement('tr');
@@ -190,22 +216,76 @@ export default class createEvntController {
             for (let j = 0; j < seatArrayFromEvent[i].length; j++) {
                 let newSeatInTable = document.createElement('td');
                 let newSeatButton = document.createElement('button');
-                // newSeatButton.style.width = '40px';
-                // newSeatButton.style.height = '40px';
-                newSeatButton.innerHTML = "<img src='../img/event_seat_black_192x192.png' width='40px' height='40px'>";
+                newSeatButton.classList.add("availableSeatImg");
+                newSeatButton.id = i + "-" + j;
+                newSeatButton.value = "OFF";
 
-                newSeatButton.addEventListener('click', function () {
+                newSeatButton.addEventListener('click', function (e) {
+                    let button = e.target;
 
+                    if (button.value == "OFF"){
+                        button.classList.remove("availableSeatImg");
+                        button.classList.add("permUnavailableSeatImg");
+                        button.value = "ON";
+                    } else if (button.value == "ON") {
+                        button.classList.remove("permUnavailableSeatImg");
+                        button.classList.add("availableSeatImg");
+                        button.value = "OFF";
+                    }
                 });
 
                 newSeatInTable.append(newSeatButton);
                 newRow.append(newSeatInTable);
-
-
-
             }
-
             seatTable.append(newRow);
         }
+    }
+
+    removeSeatsAndSave(seatTableFull) {
+        let buttonArray = [];
+
+        let tableChildren = seatTableFull.childNodes;
+
+        for (let i = 1; i < tableChildren.length; i++) {
+            let rowChildren = tableChildren[i].childNodes;
+            for (let j = 1; j < rowChildren.length; j++) {
+                let checkTD = rowChildren[j].childNodes;
+                let checkButton = checkTD[0];
+
+                if (checkButton.value == "ON") {
+                    buttonArray.push(checkButton);
+                }
+            }
+        }
+
+        for (let i = 0; i < this.event.seats.length; i++) {
+
+            for (let j = 0; j < this.event.seats[i].length; j++) {
+                let eventSeat = this.event.seats[i][j];
+                let y;
+
+                for (y = 0; y < buttonArray.length; y++) {
+                    let buttonValue = buttonArray[y].id;
+                    let selectedSeatRow = parseInt(buttonValue.split("-", 1));
+                    let selectedSeatCol = parseInt(buttonValue.split('-', 2)[1]);
+
+                    if (eventSeat.columnLocation == selectedSeatRow && eventSeat.rowLocation == selectedSeatCol) {
+                        eventSeat.seatType = "PU";
+                        eventSeat.isOccupied = true;
+                    }
+                }
+
+            }
+        }
+        this.saveNewEvent();
+        this.reload();
+    }
+
+    reload() {
+        location.reload();
+    }
+
+    showSeatCheckIn() {
+        
     }
 }

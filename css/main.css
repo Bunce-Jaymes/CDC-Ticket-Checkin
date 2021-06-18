@@ -32,8 +32,25 @@ ul {
     padding-left: 0px;
 }
 
+
 .availableSeatImg {
     background-image: url("../img/event_seat_black_192x192.png");
+    background-size: 40px;
+    background-position: center;
+    width: 50px;
+    height: 50px;
+    border: none;
+    background-repeat: no-repeat;
+}
+
+.permUnavailableSeatImg {
+    background-image: url("../img/event_seat_empty_192x192.png");
+    background-size: 40px;
+    background-position: center;
+    width: 50px;
+    height: 50px;
+    border: none;
+    background-repeat: no-repeat;
 }
 
 #titleLabel, h1 {

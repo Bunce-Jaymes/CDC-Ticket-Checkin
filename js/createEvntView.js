@@ -23,7 +23,7 @@ export default class createEvntView {
 
             <button id="submitButton" type="submit">Add This Event</button>
             
-            <button onclick="location.reload()" id="cancelFormButton">Cancel</button>
+            <button id="cancelFormButton">Cancel</button>
         </form>      
         `;
     }
