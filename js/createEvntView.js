@@ -10,8 +10,8 @@ export default class createEvntView {
         <form id="newEventForm">
             <label>Event Name: <input id="eventName" required></label>
             <label id="eventTimeLabel">Event Date and Time: <input type="datetime-local" id="eventDateAndTime" required></label>
-            <label>Amount of Columns: <input type="number" id="amountOfColumns" required></label>
-            <label>Amount of Rows: <input type="number" id="amountOfRows" required></label>
+            <label>Amount of Columns: <input type="number" id="amountOfColumns" min="1" max="42" required></label>
+            <label>Amount of Rows: <input type="number" id="amountOfRows" min="1" max="42" required></label>
             <label>Column Labels as: <select id="columnLabelAs">
                 <option value="letters">Letters</option>
                 <option value="numbers">Numbers</option>

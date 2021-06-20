@@ -3,33 +3,38 @@
     font-family: 'Trebuchet MS', sans-serif;
 }
 
+#eventListDiv {
+    display: flex;
+}
+
+li {
+    width: 100%;
+}
+
 #mainView {
     place-items: center;
     border: 1px solid;
     background-color: lightgray;
     padding: 10px;
-    position: absolute;
-    display: flex;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    /*position: absolute;*/
+    display: inline-flex;
+    max-width: fit-content;
+    /*left: 50%;*/
+    /*top: 50%;*/
+    /*transform: translate(-50%, -50%);*/
     flex-flow: column wrap;
-    width: 90%;
+    /*width: 90%;*/
+    margin: 10px;
 }
 
 table {
-    width: 90%;
+    table-layout: auto;
+    scroll-padding-right: 50px;
+    display: inline-table;
+    background-color: lightgray;
 }
 
-@media (min-width: 1024px){
-    #titleLabel, h1 {
-        font-size: 3vw !important;
-    }
 
-    input, label, select, button {
-        font-size: 2vw !important;
-    }
-}
 
 ul {
     list-style: none;
@@ -55,6 +60,10 @@ ul {
     height: 50px;
     border: none;
     background-repeat: no-repeat;
+}
+
+#cancelButton {
+    margin-top: 20px;
 }
 
 .firstTap {
@@ -86,15 +95,23 @@ li button {
     /*background: none;*/
 }
 
+th {
+    font-size: 2em;
+}
+
+li {
+    width: 100%;
+}
+
 #eventNameLabel {
     padding: 20px;
-    font-size: 3vw !important;
+    font-size: 2em !important;
     text-decoration: underline;
 }
 
 #titleLabel, h1 {
     width: 100%;
-    font-size: 6vw;
+    font-size: 2.6em;
     text-decoration: underline;
 }
 
@@ -116,8 +133,12 @@ li button {
     width: 75%;
 }
 
-input, label, select {
-    font-size: 3.5vw;
+input, select {
+    font-size: 1.2em;
+}
+
+label {
+    font-size: 1.4em;
 }
 
 #cancelFormButton {
@@ -131,11 +152,15 @@ input {
 }
 
 button {
-    font-size: 3.5vw;
+    font-size: 1.5em;
     border-radius: 5px;
 }
 
 #addEventButton {
     margin-top: 40px;
+}
+
+#cancelButton {
+    margin-top: 20px;
 }
 

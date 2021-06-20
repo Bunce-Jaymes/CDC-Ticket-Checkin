@@ -1,5 +1,5 @@
-import createEvntController from "./createEvntController.js";
+import mainController from "./mainController.js";
 
-const createEvntControllerInstance = new createEvntController("#mainView");
+const createEvntControllerInstance = new mainController("#mainView");
 
 createEvntControllerInstance.init();

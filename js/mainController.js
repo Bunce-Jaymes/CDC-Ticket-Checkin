@@ -5,7 +5,7 @@ import localStorageUtil from "./localStorageUtil.js";
 import selectUnavailableSeatViewObject from "./selectUnavailableSeatView.js";
 import seatCheckInViewViewObject from "./seatCheckInView.js";
 
-export default class createEvntController {
+export default class mainController {
     constructor(mainDisplayElement) {
         this.mainDisplayElement = mainDisplayElement;
         this.createEvntViewInstance = new createEvntView();
@@ -47,7 +47,22 @@ export default class createEvntController {
                     this.setCurrentEvent(element);
                     alert("Select seats to be checked in. Tapping once will highlight the seat. Tapping again will confirm the seat as checked in and save.")
                     this.showSeatCheckIn();
+                });
 
+                resetButton.addEventListener('click', e => {
+                    let response = confirm("This will reset all seats to un occupied press ok to continue.");
+                    if (response === true) {
+                        this.setCurrentEvent(element);
+                        this.resetCheckedInSeats();
+                    }
+                });
+
+                deleteButton.addEventListener('click', e => {
+                   let response = confirm("The event will be permanently deleted press OK to continue.");
+                   if (response === true){
+                       this.setCurrentEvent(element);
+                       this.deleteEvent();
+                   }
                 });
 
                 let eventDate = new Date(element.eventDate);
@@ -301,34 +316,35 @@ export default class createEvntController {
         this.event = selectedEvent;
     }
 
-    showSeatCheckIn() {
-        function updateSeatEvent(e) {
-            let button = e.target;
+    showSeatCheckIn(eventListener = (e) => {
+        let button = e.target;
+        let seatArrayFromEvent = this.event.seats;
 
-            if (button.value == "OFF") {
-                button.classList.remove("availableSeatImg");
-                button.classList.add("firstTap");
-                button.value = "1stTap";
-            } else if (button.value == "1stTap") {
-                button.classList.remove("firstTap");
-                button.classList.add("confirmed");
-                button.value = "Confirmed";
+        if (button.value == "OFF") {
+            button.classList.remove("availableSeatImg");
+            button.classList.add("firstTap");
+            button.value = "1stTap";
+        } else if (button.value == "1stTap") {
+            button.classList.remove("firstTap");
+            button.classList.add("confirmed");
+            button.value = "Confirmed";
 
-                let selectedSeatRow = parseInt(button.id.split("-", 1));
-                let selectedSeatCol = parseInt(button.id.split('-', 2)[1]);
+            let selectedSeatRow = parseInt(button.id.split("-", 1));
+            let selectedSeatCol = parseInt(button.id.split('-', 2)[1]);
 
-                for (let i = 0; i < seatArrayFromEvent.length; i++) {
-                    for (let j = 0; j < seatArrayFromEvent[i].length; j++) {
-                        let eventSeat = seatArrayFromEvent[i][j];
+            for (let i = 0; i < seatArrayFromEvent.length; i++) {
+                for (let j = 0; j < seatArrayFromEvent[i].length; j++) {
+                    let eventSeat = seatArrayFromEvent[i][j];
 
-                        if (eventSeat.columnLocation == selectedSeatRow && eventSeat.rowLocation == selectedSeatCol) {
-                            eventSeat.seatType = "O";
-                            eventSeat.isOccupied = true;
-                        }
+                    if (eventSeat.columnLocation == selectedSeatRow && eventSeat.rowLocation == selectedSeatCol) {
+                        eventSeat.seatType = "O";
+                        eventSeat.isOccupied = true;
                     }
                 }
             }
+            this.findAndSavedUpdatedEvent(this.event);
         }
+    }) {
 
         this.seatCheckInView.showSeatCheckInView(this.mainDisplayElement);
 
@@ -397,42 +413,12 @@ export default class createEvntController {
                     newSeatButton.classList.add("permUnavailableSeatImg");
                     newSeatButton.value = "N/A";
                 } else if (seatToCheckFromEvent.seatType == "O" && seatToCheckFromEvent.isOccupied == true) {
-                        newSeatButton.classList.add("confirmed");
-                        newSeatButton.value = "N/A";
-                    } else {
-                        newSeatButton.classList.add("availableSeatImg");
-                        newSeatButton.value = "OFF";
-
-                        newSeatButton.addEventListener('click', updateSeatEvent);
-
-                        // newSeatButton.addEventListener('click', function (e) {
-                        //     let button = e.target;
-                        //
-                        //     if (button.value == "OFF") {
-                        //         button.classList.remove("availableSeatImg");
-                        //         button.classList.add("firstTap");
-                        //         button.value = "1stTap";
-                        //     } else if (button.value == "1stTap") {
-                        //         button.classList.remove("firstTap");
-                        //         button.classList.add("confirmed");
-                        //         button.value = "Confirmed";
-                        //
-                        //         let selectedSeatRow = parseInt(button.id.split("-", 1));
-                        //         let selectedSeatCol = parseInt(button.id.split('-', 2)[1]);
-                        //
-                        //         for (let i = 0; i < seatArrayFromEvent.length; i++) {
-                        //             for (let j = 0; j < seatArrayFromEvent[i].length; j++) {
-                        //                 let eventSeat = seatArrayFromEvent[i][j];
-                        //
-                        //                 if (eventSeat.columnLocation == selectedSeatRow && eventSeat.rowLocation == selectedSeatCol) {
-                        //                     eventSeat.seatType = "O";
-                        //                     eventSeat.isOccupied = true;
-                        //                 }
-                        //             }
-                        //         }
-                        //     }
-                        // });
-                    // }
+                    newSeatButton.classList.add("confirmed");
+                    newSeatButton.value = "N/A";
+                } else {
+                    newSeatButton.classList.add("availableSeatImg");
+                    newSeatButton.value = "OFF";
+                    newSeatButton.addEventListener('click', eventListener);
                 }
 
                 newSeatInTable.append(newSeatButton);
@@ -445,17 +431,57 @@ export default class createEvntController {
     findAndSavedUpdatedEvent() {
         let savedEventsArray = this.ls.getLocalStorage();
 
-        savedEventsArray.every(element => {
+        savedEventsArray.forEach(element => {
             let compareDate = new Date(element.eventDate);
             compareDate = compareDate.toLocaleDateString('en-US');
-            let currentEventDate = this.event.eventDate.toLocaleDateString('en-US');
+            let currentEventDate = new Date(this.event.eventDate);
+            currentEventDate = currentEventDate.toLocaleDateString('en-US');
 
-            if (element.eventName === this.event.eventName && compareDate === currentEventDate) {
+            if (element.eventName == this.event.eventName && compareDate == currentEventDate) {
                 let index = savedEventsArray.indexOf(element);
                 savedEventsArray[index] = this.event;
             }
         });
 
         this.ls.setLocalStorage(savedEventsArray);
+    }
+
+    resetCheckedInSeats() {
+        const seatArrayFromEvent = this.event.seats;
+
+        for (let i = 0; i < seatArrayFromEvent.length; i++) {
+            for (let j = 0; j < seatArrayFromEvent[i].length; j++) {
+                let eventSeat = seatArrayFromEvent[i][j];
+                if (eventSeat.seatType !== "PU"){
+                    eventSeat.seatType = "A";
+                    eventSeat.isOccupied = false;
+                }
+            }
+        }
+
+        this.findAndSavedUpdatedEvent();
+
+        alert("The program will now relaunch.");
+        this.reload();
+    }
+
+    deleteEvent() {
+        let savedEventsArray = this.ls.getLocalStorage();
+
+        savedEventsArray.forEach(element => {
+            let compareDate = new Date(element.eventDate);
+            compareDate = compareDate.toLocaleDateString('en-US');
+            let currentEventDate = new Date(this.event.eventDate);
+            currentEventDate = currentEventDate.toLocaleDateString('en-US');
+
+            if (element.eventName == this.event.eventName && compareDate == currentEventDate) {
+                let index = savedEventsArray.indexOf(element);
+                savedEventsArray.splice(index, 1);
+            }
+        });
+
+        this.ls.setLocalStorage(savedEventsArray);
+        alert("The program will now relaunch.");
+        this.reload();
     }
 }
