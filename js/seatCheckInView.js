@@ -8,7 +8,7 @@ export default class seatCheckInView {
 
         <table id="seatTable"></table>
         
-        <button id="cancelButton">Cancel</button>
+        <button id="cancelButton">Back</button>
         
         `;
     }

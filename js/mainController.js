@@ -1,19 +1,19 @@
-import createEvntView from './createEvntView.js';
+import CreateEventView from './createEvntView.js';
 import eventObject from './event.js';
 import seatObject from './seat.js';
-import localStorageUtil from "./localStorageUtil.js";
-import selectUnavailableSeatViewObject from "./selectUnavailableSeatView.js";
-import seatCheckInViewViewObject from "./seatCheckInView.js";
+import LocalStorageUtil from "./localStorageUtil.js";
+import SelectUnavailableSeatViewObject from "./selectUnavailableSeatView.js";
+import SeatCheckInViewViewObject from "./seatCheckInView.js";
 
 export default class mainController {
     constructor(mainDisplayElement) {
         this.mainDisplayElement = mainDisplayElement;
-        this.createEvntViewInstance = new createEvntView();
-        this.selectUnavailableSeatViewInstance = new selectUnavailableSeatViewObject();
+        this.createEvntViewInstance = new CreateEventView();
+        this.selectUnavailableSeatViewInstance = new SelectUnavailableSeatViewObject();
         this.event = new eventObject();
-        this.ls = new localStorageUtil();
-        this.seatCheckInView = new seatCheckInViewViewObject();
-        this.alphabetArray = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "AB", "BB", "CB", "DB", "EB", "FB", "GB", "HB", "IB", "JB", "KB", "LB", "MB", "NB", "OB", "PB", "QB", "RB", "SB", "TB", "UB", "VB", "WB", "XB", "YB", "ZB"]
+        this.ls = new LocalStorageUtil();
+        this.seatCheckInView = new SeatCheckInViewViewObject();
+        this.alphabetArray = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "AB", "BB", "CB", "DB", "EB", "FB", "GB", "HB", "IB", "JB", "KB", "LB", "MB", "NB", "OB", "PB", "QB", "RB", "SB", "TB", "UB", "VB", "WB", "XB", "YB", "ZB"];
     }
 
     init() {
@@ -29,7 +29,7 @@ export default class mainController {
 
         eventListStatus.innerHTML = "Loading events...";
 
-        if (savedEventsArray == null) {
+        if (savedEventsArray === null || savedEventsArray.length === 0) {
             eventListStatus.innerHTML = "No saved events found in local storage. Add an event using the button below.";
         } else {
             eventListStatus.style.display = 'none';
@@ -45,7 +45,7 @@ export default class mainController {
 
                 newEventButton.addEventListener("click", e => {
                     this.setCurrentEvent(element);
-                    alert("Select seats to be checked in. Tapping once will highlight the seat. Tapping again will confirm the seat as checked in and save.")
+                    alert("Select seats to be checked in. Tapping once will highlight the seat. Tapping again will confirm the seat as checked in and save.");
                     this.showSeatCheckIn();
                 });
 
@@ -58,11 +58,11 @@ export default class mainController {
                 });
 
                 deleteButton.addEventListener('click', e => {
-                   let response = confirm("The event will be permanently deleted press OK to continue.");
-                   if (response === true){
-                       this.setCurrentEvent(element);
-                       this.deleteEvent();
-                   }
+                    let response = confirm("The event will be permanently deleted press OK to continue.");
+                    if (response === true){
+                        this.setCurrentEvent(element);
+                        this.deleteEvent();
+                    }
                 });
 
                 let eventDate = new Date(element.eventDate);
@@ -83,7 +83,7 @@ export default class mainController {
         }
     }
 
-    async addEvent(eventListener = (e) => {
+    addEvent(eventListener = (e) => {
         let success = this.processEventForm();
         if (success === false) {
             e.preventDefault();
@@ -98,15 +98,15 @@ export default class mainController {
         newEventForm.addEventListener('submit', eventListener);
         const cancelButton = document.querySelector('#cancelFormButton');
         cancelButton.addEventListener('click', e => {
-            this.backToMain();
+            this.cancelPrompt(1);
         });
     }
 
     processEventForm() {
         let submitForm = true;
-        let confirmedInfo = confirm("Please confirm the information entered is completely correct.");
+        let confirmedInfo = confirm("Press OK to confirm the information entered is completely correct.");
 
-        if (confirmedInfo == true) {
+        if (confirmedInfo === true) {
             const eventInfoArray = this.retrieveFormInfo();
 
             let date = eventInfoArray[1];
@@ -122,7 +122,7 @@ export default class mainController {
                     let currentEventDate = newDateObject.toLocaleDateString('en-US');
 
                     if (element.eventName === eventInfoArray[0] && compareDate === currentEventDate) {
-                        alert("There is already an event saved with this event name and date. Please change the event name or date.")
+                        alert("There is already an event saved with this event name and date. Please change the event name or date.");
                         return false;
                     }
                     return true;
@@ -138,8 +138,7 @@ export default class mainController {
                 for (let i = 0; i < amountOfRow; i++) {
                     seatArray.push([0])
                     for (let j = 0; j < amountOfCol; j++) {
-                        let newSeat = new seatObject("A", false, i, j);
-                        seatArray[i][j] = newSeat;
+                        seatArray[i][j] = new seatObject("A", false, i, j);
                     }
                 }
 
@@ -169,14 +168,24 @@ export default class mainController {
         const columnLabelAs = document.querySelector('#columnLabelAs').value;
         const rowLabelAs = document.querySelector('#rowLabelAs').value;
 
-        const eventInfoArray = [eventName, eventDate, eventTime, amountOfColumns, amountOfRows, columnLabelAs, rowLabelAs];
-
-        return eventInfoArray;
+        return [eventName, eventDate, eventTime, amountOfColumns, amountOfRows, columnLabelAs, rowLabelAs];
     }
 
-    backToMain() {
-        let response = confirm("The following event/seating chart has not been saved if cancelled. Please select yes to continue.");
-        if (response == true) {
+    cancelPrompt(code) {
+        let response;
+        switch(code){
+            case 1:
+                response = confirm("The following event chart has not been saved if cancelled. Please select OK to continue.");
+                break;
+            case 2:
+                response = confirm("The following seating chart will not remove any of these seats if cancelled. Please select OK to continue.");
+                break;
+            case 3:
+                response = confirm("Any seats in green/black will not be updated. Please select OK to continue.");
+                break;
+        }
+
+        if (response === true) {
             location.reload();
         }
     }
@@ -203,7 +212,7 @@ export default class mainController {
         const cancelButton = document.querySelector('#cancelButton');
 
         cancelButton.addEventListener('click', e => {
-            this.backToMain();
+            this.cancelPrompt(2);
         });
 
         const seatArrayFromEvent = this.event.seats;
@@ -218,7 +227,7 @@ export default class mainController {
             if (this.event.columnsAreNumbers === "letters") {
                 columnLabel.innerHTML = this.alphabetArray[i];
             } else {
-                columnLabel.innerHTML = i + 1;
+                columnLabel.innerHTML = String(i + 1);
             }
 
             columnLabelRow.append(columnLabel);
@@ -233,7 +242,7 @@ export default class mainController {
             if (this.event.rowsAreLetters === "letters") {
                 newRowLabel.innerHTML = this.alphabetArray[i];
             } else {
-                newRowLabel.innerHTML = i + 1;
+                newRowLabel.innerHTML = String(i + 1);
             }
 
             newRow.append(newRowLabel);
@@ -248,11 +257,11 @@ export default class mainController {
                 newSeatButton.addEventListener('click', function (e) {
                     let button = e.target;
 
-                    if (button.value == "OFF") {
+                    if (button.value === "OFF") {
                         button.classList.remove("availableSeatImg");
                         button.classList.add("permUnavailableSeatImg");
                         button.value = "ON";
-                    } else if (button.value == "ON") {
+                    } else if (button.value === "ON") {
                         button.classList.remove("permUnavailableSeatImg");
                         button.classList.add("availableSeatImg");
                         button.value = "OFF";
@@ -277,7 +286,7 @@ export default class mainController {
                 let checkTD = rowChildren[j].childNodes;
                 let checkButton = checkTD[0];
 
-                if (checkButton.value == "ON") {
+                if (checkButton.value === "ON") {
                     buttonArray.push(checkButton);
                 }
             }
@@ -294,7 +303,7 @@ export default class mainController {
                     let selectedSeatRow = parseInt(buttonValue.split("-", 1));
                     let selectedSeatCol = parseInt(buttonValue.split('-', 2)[1]);
 
-                    if (eventSeat.columnLocation == selectedSeatRow && eventSeat.rowLocation == selectedSeatCol) {
+                    if (eventSeat.columnLocation === selectedSeatRow && eventSeat.rowLocation === selectedSeatCol) {
                         eventSeat.seatType = "PU";
                         eventSeat.isOccupied = true;
                     }
@@ -320,11 +329,11 @@ export default class mainController {
         let button = e.target;
         let seatArrayFromEvent = this.event.seats;
 
-        if (button.value == "OFF") {
+        if (button.value === "OFF") {
             button.classList.remove("availableSeatImg");
             button.classList.add("firstTap");
             button.value = "1stTap";
-        } else if (button.value == "1stTap") {
+        } else if (button.value === "1stTap") {
             button.classList.remove("firstTap");
             button.classList.add("confirmed");
             button.value = "Confirmed";
@@ -336,7 +345,7 @@ export default class mainController {
                 for (let j = 0; j < seatArrayFromEvent[i].length; j++) {
                     let eventSeat = seatArrayFromEvent[i][j];
 
-                    if (eventSeat.columnLocation == selectedSeatRow && eventSeat.rowLocation == selectedSeatCol) {
+                    if (eventSeat.columnLocation === selectedSeatRow && eventSeat.rowLocation === selectedSeatCol) {
                         eventSeat.seatType = "O";
                         eventSeat.isOccupied = true;
                     }
@@ -368,7 +377,7 @@ export default class mainController {
         const cancelButton = document.querySelector('#cancelButton');
 
         cancelButton.addEventListener('click', e => {
-            this.backToMain();
+            this.cancelPrompt(3);
         });
 
         const seatArrayFromEvent = this.event.seats;
@@ -383,7 +392,7 @@ export default class mainController {
             if (this.event.columnsAreNumbers === "letters") {
                 columnLabel.innerHTML = this.alphabetArray[i];
             } else {
-                columnLabel.innerHTML = i + 1;
+                columnLabel.innerHTML = String(i + 1);
             }
 
             columnLabelRow.append(columnLabel);
@@ -398,7 +407,7 @@ export default class mainController {
             if (this.event.rowsAreLetters === "letters") {
                 newRowLabel.innerHTML = this.alphabetArray[i];
             } else {
-                newRowLabel.innerHTML = i + 1;
+                newRowLabel.innerHTML = String(i + 1);
             }
 
             newRow.append(newRowLabel);
@@ -409,10 +418,10 @@ export default class mainController {
                 let newSeatButton = document.createElement('button');
                 newSeatButton.id = i + "-" + j;
 
-                if (seatToCheckFromEvent.seatType == "PU" && seatToCheckFromEvent.isOccupied == true) {
+                if (seatToCheckFromEvent.seatType === "PU" && seatToCheckFromEvent.isOccupied === true) {
                     newSeatButton.classList.add("permUnavailableSeatImg");
                     newSeatButton.value = "N/A";
-                } else if (seatToCheckFromEvent.seatType == "O" && seatToCheckFromEvent.isOccupied == true) {
+                } else if (seatToCheckFromEvent.seatType === "O" && seatToCheckFromEvent.isOccupied === true) {
                     newSeatButton.classList.add("confirmed");
                     newSeatButton.value = "N/A";
                 } else {
@@ -437,7 +446,7 @@ export default class mainController {
             let currentEventDate = new Date(this.event.eventDate);
             currentEventDate = currentEventDate.toLocaleDateString('en-US');
 
-            if (element.eventName == this.event.eventName && compareDate == currentEventDate) {
+            if (element.eventName === this.event.eventName && compareDate === currentEventDate) {
                 let index = savedEventsArray.indexOf(element);
                 savedEventsArray[index] = this.event;
             }
@@ -474,7 +483,7 @@ export default class mainController {
             let currentEventDate = new Date(this.event.eventDate);
             currentEventDate = currentEventDate.toLocaleDateString('en-US');
 
-            if (element.eventName == this.event.eventName && compareDate == currentEventDate) {
+            if (element.eventName === this.event.eventName && compareDate === currentEventDate) {
                 let index = savedEventsArray.indexOf(element);
                 savedEventsArray.splice(index, 1);
             }

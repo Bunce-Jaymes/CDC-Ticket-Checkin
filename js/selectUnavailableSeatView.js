@@ -9,9 +9,10 @@ export default class selectUnavailableSeatView {
         
         <table id="seatTable"></table>
         
-        <button id="doneButton">Done</button>
-        
-        <button id="cancelButton">Cancel</button>
+        <div id="buttonDiv">
+            <button id="doneButton">Done</button>
+            <button id="cancelButton">Cancel</button>
+        </div>
         
         `;
     }
